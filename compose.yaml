@@ -1,0 +1,31 @@
+services:
+
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    ports:
+#      - target: 80
+#        published: 8080
+#        mode: host
+#      - target: 443
+#        published: 8443
+#        mode: host
+    - "8080:80"
+    - "8443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+    - --providers.docker
+    - --providers.docker.exposedbydefault=false
+    - --accesslog=true
+    - --log.level=INFO
+
+  project:
+    image: traefik/whoami
+    hostname: www.project.com
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.project.rule=Host(`www.project.com`)"
+      - "traefik.http.routers.project-backend.rule=Host(`www.project.com`) && PathPrefix(`/backend`)"
+      - "traefik.http.middlewares.backend-ipallowlist.ipAllowList.sourceRange=100.85.0.0/16"
+      - "traefik.http.routers.project-backend.middlewares=backend-ipallowlist"
